@@ -1,0 +1,161 @@
+# docker compose build --ssh default=$HOME/.ssh/name_of_your_ssh_key
+
+services:
+  controller:
+    container_name: controller
+    image: ghcr.io/quant-net/qn-server:main
+    build:
+      context: server
+      ssh:
+        default:
+    restart: always
+    networks:
+      - qnet-backend
+    command: ["quantnet_controller"]
+    environment:
+      - QUANTNET_HOME=/opt/quantnet
+    volumes:
+      - ./conf:/opt/quantnet/etc
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - mosquitto
+      - mongo
+
+  agent-lbnl-q:
+    container_name: lbnl-q
+    image: ghcr.io/quant-net/qn-agent:main
+    build:
+      context: agent
+      dockerfile: Dockerfile
+      ssh:
+        default:
+    restart: always
+    networks:
+      - qnet-backend
+    command:
+      [
+        "quantnet_agent",
+        "-a",
+        "LBNL-Q",
+        "-n",
+        "/opt/quantnet/node_defs/conf_lbnl-q.json",
+        "-c",
+        "/opt/quantnet/etc/agent.cfg",
+      ]
+    environment:
+      - QUANTNET_HOME=/opt/quantnet
+    volumes:
+      - ./conf:/opt/quantnet/etc
+      - ./agent:/opt/quantnet/node_defs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - mosquitto
+
+  agent-ucb-q:
+    container_name: ucb-q
+    extends: agent-lbnl-q
+    command:
+      [
+        "quantnet_agent",
+        "-a",
+        "UCB-Q",
+        "-n",
+        "/opt/quantnet/node_defs/conf_ucb-q.json",
+        "-c",
+        "/opt/quantnet/etc/agent.cfg",
+      ]
+
+  agent-lbnl-switch:
+    container_name: lbnl-switch
+    extends: agent-lbnl-q
+    command:
+      [
+        "quantnet_agent",
+        "-a",
+        "LBNL-SWITCH",
+        "-n",
+        "/opt/quantnet/node_defs/conf_lbnl-switch.json",
+        "-c",
+        "/opt/quantnet/etc/agent.cfg",
+      ]
+
+  agent-ucb-switch:
+    container_name: ucb-switch
+    extends: agent-lbnl-q
+    command:
+      [
+        "quantnet_agent",
+        "-a",
+        "UCB-SWITCH",
+        "-n",
+        "/opt/quantnet/node_defs/conf_ucb-switch.json",
+        "-c",
+        "/opt/quantnet/etc/agent.cfg",
+      ]
+
+  agent-lbnl-bsm:
+    container_name: lbnl-bsm
+    extends: agent-lbnl-q
+    command:
+      [
+        "quantnet_agent",
+        "-a",
+        "LBNL-BSM",
+        "-n",
+        "/opt/quantnet/node_defs/conf_lbnl-bsm.json",
+        "-c",
+        "/opt/quantnet/etc/agent.cfg",
+      ]
+
+  agent-usb-bsm:
+    container_name: ucb-bsm
+    extends: agent-lbnl-q
+    command:
+      [
+        "quantnet_agent",
+        "-a",
+        "UCB-BSM",
+        "-n",
+        "/opt/quantnet/node_defs/conf_ucb-bsm.json",
+        "-c",
+        "/opt/quantnet/etc/agent.cfg",
+      ]
+
+  mongo:
+    image: mongo
+    restart: always
+    networks:
+      - qnet-backend
+    expose:
+      - 27017
+    ports:
+      - "27017:27017"
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    hostname: broker
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+      - "8080:8080"
+    networks:
+      - qnet-backend
+    volumes:
+      - ./conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    expose:
+      - 1883
+      - 9001
+      - 8080
+
+networks:
+  qnet-backend:
+    driver: bridge

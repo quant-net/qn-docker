@@ -1,0 +1,23 @@
+services:
+  mongo:
+    container_name: mongodb
+    image: mongo
+    restart: unless-stopped
+    expose:
+      - 27017
+    ports:
+      - "[127.0.0.1]:27017:27017"
+
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto:latest
+    hostname: mosquitto
+    restart: unless-stopped
+    ports:
+       - "[127.0.0.1]:1883:1883"
+       - "[127.0.0.1]:8080:8080"
+    volumes:
+      - ./conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    expose:
+      - 1883
+      - 8080
