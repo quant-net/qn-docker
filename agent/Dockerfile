@@ -1,30 +1,16 @@
-# Enable Buildkit and run
-# DOCKER_BUILDKIT=1 docker build --progress=plain --ssh default=$HOME/.ssh/name_of_your_ssh_key .
-
 FROM python:3.11-slim AS build
 
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
-    openssh-client \ 
+    openssh-client \
     git \
     && apt-get clean
 
-# RUN mkdir -p -m 0600 ~/.ssh && \
-#     ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+ARG QUANTNET_MQ_VERSION=""
+ARG QUANTNET_AGENT_VERSION=""
 
-# RUN --mount=type=ssh \
-#     git clone --single-branch --branch main git@github.com:quant-net/qn-mq qn_mq && \
-#     cd qn_mq &&  \
-#     pip install .
-
-# RUN --mount=type=ssh \
-#     git clone --single-branch --branch main git@github.com:quant-net/qn-agent.git && \
-#     cd qn-agent && \
-#     pip install .
-
-# Update pip
 RUN python -m pip install --upgrade pip
-RUN pip install quantnet-mq quantnet-agent
+RUN pip install quantnet-mq${QUANTNET_MQ_VERSION} quantnet-agent${QUANTNET_AGENT_VERSION}
 
 RUN git clone --single-branch --branch main https://github.com/quant-net/qn-plugins.git qn-plugins
 
