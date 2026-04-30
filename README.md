@@ -18,19 +18,30 @@ Supporting services include:
 
 ## Build Docker Images (Optional)
 
-Use the following command to build docker images from local dockerfiles. An ssh key is needed to pull QUANT-NET component repositories.
+Use the following command to build docker images from local dockerfiles.
 
 ```
-docker compose build --ssh default=$HOME/.ssh/name_of_your_ssh_key
+docker compose -f docker-compose.yml build
 ```
 
 ## Start Services
 
 ```
-docker compose up -d
+docker compose -f docker-compose.yml up -d
 ```
 
-## Run example pingpong test
+ - Use a browser and navigate to http://localhost:8081 to view the web dashboard.
+
+### Development testing
+
+The `IMAGE_TAG` env var will provide access to the latest `develop` tagged docker images.
+
+```
+IMAGE_TAG=develop docker compose -f docker-compose.yml pull
+IMAGE_TAG=develop docker compose -f docker-compose.yml up -d
+```
+
+## Run example pingpong test inside containers
 
  * Optionally view the QNCP Controller logging output:
 ```
