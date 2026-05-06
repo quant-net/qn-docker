@@ -3,11 +3,14 @@
 services:
   controller:
     container_name: controller
-    image: ghcr.io/quant-net/qn-server:main
+    image: ghcr.io/quant-net/qn-server:${IMAGE_TAG:-main}
     build:
       context: server
       ssh:
         default:
+      args:
+        QUANTNET_MQ_VERSION: ${QUANTNET_MQ_VERSION:-}
+        QUANTNET_SERVER_VERSION: ${QUANTNET_SERVER_VERSION:-}
     restart: always
     networks:
       - qnet-backend
@@ -25,14 +28,48 @@ services:
       - mosquitto
       - mongo
 
+  api:
+    container_name: api
+    image: ghcr.io/quant-net/qn-api:${IMAGE_TAG:-main}
+    build:
+      context: api
+      ssh:
+        default:
+      args:
+        QUANTNET_MQ_VERSION: ${QUANTNET_MQ_VERSION:-}
+        QUANTNET_SERVER_VERSION: ${QUANTNET_SERVER_VERSION:-}
+        QUANTNET_API_VERSION: ${QUANTNET_API_VERSION:-}
+    restart: always
+    networks:
+      - qnet-backend
+    ports:
+      - "8081:8081"
+    command: ["qn-api"]
+    environment:
+      - QUANTNET_HOME=/opt/quantnet
+    volumes:
+      - ./conf:/opt/quantnet/etc
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - controller
+      - mosquitto
+      - mongo
+
   agent-lbnl-q:
     container_name: lbnl-q
-    image: ghcr.io/quant-net/qn-agent:main
+    image: ghcr.io/quant-net/qn-agent:${IMAGE_TAG:-main}
     build:
       context: agent
       dockerfile: Dockerfile
       ssh:
         default:
+      args:
+        QUANTNET_MQ_VERSION: ${QUANTNET_MQ_VERSION:-}
+        QUANTNET_AGENT_VERSION: ${QUANTNET_AGENT_VERSION:-}
     restart: always
     networks:
       - qnet-backend
