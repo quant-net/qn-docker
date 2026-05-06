@@ -3,7 +3,7 @@
 services:
   controller:
     container_name: controller
-    image: ghcr.io/quant-net/qn-server:${IMAGE_TAG:-main}
+    image: ghcr.io/quant-net/qn-server:${IMAGE_TAG:-latest}
     build:
       context: server
       ssh:
@@ -30,7 +30,7 @@ services:
 
   api:
     container_name: api
-    image: ghcr.io/quant-net/qn-api:${IMAGE_TAG:-main}
+    image: ghcr.io/quant-net/qn-api:${IMAGE_TAG:-latest}
     build:
       context: api
       ssh:
@@ -61,7 +61,7 @@ services:
 
   agent-lbnl-q:
     container_name: lbnl-q
-    image: ghcr.io/quant-net/qn-agent:${IMAGE_TAG:-main}
+    image: ghcr.io/quant-net/qn-agent:${IMAGE_TAG:-latest}
     build:
       context: agent
       dockerfile: Dockerfile
